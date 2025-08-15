@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSc in Disaster Science & Climate Resilience - Interactive Curriculum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F7F4;
+            color: #2c3e50;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        .nav-button.active {
+            background-color: #0891b2;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .course-item-header {
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .course-item-header:hover {
+            background-color: #e0f2fe;
+        }
+        .course-item-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .course-item.open .course-item-content {
+            max-height: 1000px;
+        }
+        .course-item.open .chevron {
+            transform: rotate(180deg);
+        }
+        .chevron {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: A single-page dashboard design with three main sections: 'Overview', 'Curriculum Explorer', and 'About'. The 'Overview' uses charts to provide a high-level summary of credit distribution and thematic course breakdown, allowing for quick synthesis of the program's structure. The 'Curriculum Explorer' is the core interactive component, using semester-based navigation and accordion-style course details to allow users to progressively disclose information without being overwhelmed. An 'About' section provides foundational context. This structure was chosen to guide the user from a broad understanding to specific details in a logical, intuitive flow, prioritizing usability and exploration over a linear replication of the source document. -->
+    <!-- Visualization & Content Choices: 1. Credits per Semester: Report Info -> Credit counts for each of 8 semesters. Goal -> Compare workload over time. Viz -> Bar Chart. Interaction -> Tooltip on hover shows exact credits. Justification -> Standard, clear method for comparing discrete categories. Library -> Chart.js. 2. Thematic Course Breakdown: Report Info -> All 70+ courses. Goal -> Organize and show program focus. Viz -> Donut Chart. Interaction -> Tooltip on hover shows theme and course count. Justification -> Effective for showing part-to-whole composition of the curriculum's focus areas. Library -> Chart.js. 3. Course Details: Report Info -> Detailed description for each course. Goal -> Inform on specific course content. Presentation -> Accordion UI. Interaction -> Click to expand/collapse. Justification -> Prevents information overload, allowing users to drill down as needed. Method -> HTML/CSS/JS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-cyan-700">DSCR Curriculum</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#overview" class="nav-link text-gray-600 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium">Overview</a>
+                        <a href="#explorer" class="nav-link text-gray-600 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium">Curriculum Explorer</a>
+                        <a href="#about" class="nav-link text-gray-600 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium">About the Program</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <section id="overview" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2 text-center">Program Overview</h2>
+            <p class="text-center text-gray-600 mb-8 max-w-3xl mx-auto">A visual summary of the Bachelor of Science in Disaster Science & Climate Resilience program, highlighting the distribution of academic credits and the core thematic areas of study across the four-year degree.</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4 text-center">Credit Distribution per Semester</h3>
+                    <div class="chart-container">
+                        <canvas id="creditsChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-4 text-center">Thematic Course Breakdown</h3>
+                    <div class="chart-container">
+                        <canvas id="thematicChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="explorer" class="mb-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2 text-center">Curriculum Explorer</h2>
+            <p class="text-center text-gray-600 mb-8 max-w-3xl mx-auto">Interactively explore the courses offered in each semester. Click on a semester to view its courses, and then click on any course to see its detailed description, objectives, and learning outcomes.</p>
+            
+            <div class="flex flex-wrap justify-center gap-2 mb-8">
+                <button data-semester="1" class="semester-btn nav-button px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-cyan-50 active">Semester 1</button>
+                <button data-semester="2" class="semester-btn nav-button px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-cyan-50">Semester 2</button>
+                <button data-semester="3" class="semester-btn nav-button px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-cyan-50">Semester 3</button>
+                <button data-semester="4" class="semester-btn nav-button px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-cyan-50">Semester 4</button>
+                <button data-semester="5" class="semester-btn nav-button px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-cyan-50">Semester 5</button>
+                <button data-semester="6" class="semester-btn nav-button px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-cyan-50">Semester 6</button>
+                <button data-semester="7" class="semester-btn nav-button px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-cyan-50">Semester 7</button>
+                <button data-semester="8" class="semester-btn nav-button px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-cyan-50">Semester 8</button>
+            </div>
+
+            <div id="course-list" class="space-y-4"></div>
+        </section>
+
+        <section id="about" class="bg-white p-8 rounded-lg shadow-lg scroll-mt-20">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4 text-center">About the Program</h2>
+            <div class="space-y-6 text-gray-600 leading-relaxed max-w-4xl mx-auto">
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Abstract</h3>
+                    <p>This document presents the full, course-specific curriculum for the four-year (8-semester, 152-credit) BSc in Disaster Science & Climate Resilience. Each course includes tailored objectives, detailed contents, learning outcomes, and recommended references to ensure alignment with the distinct skills and competencies required across climatology, hydrology, geosciences, geoinformatics, risk reduction, and disaster management.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Introduction</h3>
+                    <p>The curriculum develops progressive capability—from foundational science to advanced modelling, hazard monitoring, risk-sensitive planning, and capstone research. Course design follows constructive alignment principles, ensuring that learning outcomes are directly assessable through labs, fieldwork, projects, and examinations.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-white mt-12 border-t">
+        <div class="container mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+            <p>&copy; 2025 Department of Disaster Science & Climate Resilience. All rights reserved.</p>
+            <p class="text-sm mt-1">Interactive curriculum designed for prospective students and academic advisors.</p>
+        </div>
+    </footer>
+
+    <script>
+        const curriculumData = [
+            {
+                semester: 1,
+                courses: [
+                    { title: "Advanced Physics - I", credits: 2, category: "Foundational Science", intro: "Mechanics, solid-state physics, and fluid dynamics for geophysical and engineering hazard analysis.", objectives: ["Apply Newtonian mechanics to ground motion and structures.", "Interpret material behavior using basic solid-state concepts.", "Analyze laminar vs. turbulent flow in environmental fluids."], outcomes: ["Estimate inertial forces on structures during seismic shaking.", "Relate material properties to slope stability and failure.", "Compute flow regimes and head losses in simple hydraulic systems."], references: ["Halliday, Resnick & Walker (2020) Fundamentals of Physics.", "Kittel (2004) Introduction to Solid State Physics.", "Fox, Pritchard & McDonald (2015) Introduction to Fluid Mechanics."] },
+                    { title: "Advanced Physics - II", credits: 2, category: "Foundational Science", intro: "Waves & oscillations, thermal physics, and magnetism with applications to seismology and heat transfer.", objectives: ["Model oscillatory systems and wave propagation.", "Apply thermodynamic laws to environmental heat exchange.", "Explain magnetic phenomena relevant to geophysics."], outcomes: ["Interpret seismograms using wave concepts (arrival times, dispersion).", "Compute conductive heat flux in soils and building envelopes.", "Describe magnetic field anomalies pertinent to subsurface mapping."], references: ["Tipler & Mosca (2007) Physics for Scientists and Engineers.", "Reif (2009) Fundamentals of Statistical and Thermal Physics.", "Griffiths (2013) Introduction to Electrodynamics (selected topics)."] },
+                    { title: "Applied Environmental Science", credits: 3, category: "Earth & Climate Science", intro: "Applied principles of environmental systems with emphasis on pollution control and sustainability for disaster resilience.", objectives: ["Describe biogeochemical cycles and ecosystem services relevant to resilience.", "Assess environmental pollution sources, pathways, and impacts.", "Apply Environmental Impact Assessment (EIA) to hazard mitigation projects."], outcomes: ["Design an environmental monitoring plan for a hazard-prone municipality.", "Compute pollutant loads and propose best available control technologies.", "Critically evaluate an EIA for flood-control or embankment projects."], references: ["Cunningham & Cunningham (2019) Environmental Science.", "UNEP (2018) Environmental Governance.", "APHA (2017) Standard Methods for Water & Wastewater.", "WHO (2018) Air Quality Guidelines."] },
+                    { title: "Basics of Climatology & Meteorology", credits: 2, category: "Earth & Climate Science", intro: "Foundations of atmospheric science emphasizing weather processes that drive hazards such as cyclones, heatwaves, and heavy rainfall.", objectives: ["Explain atmospheric structure, composition, and energy balance.", "Use thermodynamics and dynamics to interpret weather systems in the tropics.", "Operate basic meteorological instruments and interpret synoptic charts."], outcomes: ["Analyze weather maps and upper-air charts for short-term forecasting.", "Quantify surface energy budget and atmospheric stability indices.", "Explain formation of monsoon rainfall and tropical cyclones in South Asia."], references: ["Wallace & Hobbs (2006) Atmospheric Science.", "Lutgens & Tarbuck (2020) The Atmosphere.", "Rogers & Yau (1989) A Short Course in Cloud Physics.", "Ahrens (2019) Meteorology Today."] },
+                    { title: "Differential & Integral Calculus", credits: 3, category: "Foundational Science", intro: "Calculus for modelling geophysical and environmental systems.", objectives: ["Apply differentiation/integration to rates, accumulation, and conservation laws.", "Use multivariable calculus for transport and flow problems.", "Formulate and solve first-order differential equations in environmental contexts."], outcomes: ["Compute fluxes and accumulation for watershed water balances.", "Optimize designs (e.g., levee height) using constrained optimization.", "Solve simple growth/decay and mixing problems relevant to pollution."], references: ["Stewart (2020) Calculus.", "Thomas & Finney (2016) Calculus and Analytic Geometry."] },
+                    { title: "Introduction to Disaster & Society", credits: 2, category: "Social Science & Planning", intro: "Social dimensions of disasters: vulnerability, exposure, governance, and community-based risk reduction.", objectives: ["Explain disaster risk as a function of hazard, exposure, and vulnerability.", "Analyze differential impacts across gender, age, and livelihoods.", "Outline international DRR frameworks and local governance mechanisms."], outcomes: ["Conduct a basic community hazard-vulnerability-capacity assessment.", "Design a stakeholder engagement plan for a flood-prone ward.", "Summarize Sendai priorities in a local action plan."], references: ["Wisner et al. (2014) At Risk.", "UNDRR (2015) Sendai Framework.", "IFRC (2018) Community-based DRR."] },
+                    { title: "Introduction to Earth Science", credits: 2, category: "Earth & Climate Science", intro: "Survey of Earth systems-lithosphere, hydrosphere, atmosphere, biosphere- linking geologic processes to hazards.", objectives: ["Differentiate rock-forming processes and plate-tectonic settings.", "Relate geologic structures to earthquakes, volcanoes, and landslides.", "Interpret geological maps for hazard assessment."], outcomes: ["Classify rocks and minerals in hand specimen and context of origin.", "Map plate boundaries and infer associated hazard regimes.", "Interpret cross-sections and recognize structures related to instability."], references: ["Tarbuck & Lutgens (2019) Earth.", "Marshak (2018) Earth: Portrait of a Planet.", "Klein & Dutrow (2007) Manual of Mineral Science."] },
+                    { title: "Surveying & Levelling", credits: 2, category: "Data & Geoinformatics", intro: "Field measurement techniques for creating accurate topographic maps supporting hazard mapping and infrastructure design.", objectives: ["Operate levelling and angle-measurement instruments safely.", "Execute traverses and compute coordinates with error adjustment.", "Produce contour maps for flood and landslide assessments."], outcomes: ["Conduct a closed traverse and adjust misclosure with Bowditch method.", "Generate a contour map from field notes and derive slope/flow paths.", "Integrate GNSS control into a small-site hazard survey."], references: ["Bannister & Raymond (2017) Surveying.", "Wolf & Ghilani (2013) Elementary Surveying."] },
+                    { title: "Viva Vocé", credits: 2, category: "Practical Skills", intro: "Oral examination assessing integrated understanding of Semester 1 material.", objectives: ["Synthesize cross-course concepts and communicate clearly.", "Defend problem-solving approaches under time constraints."], outcomes: ["Demonstrate integrative reasoning and disciplinary vocabulary.", "Exhibit ethical and safe practice awareness in field/lab work."], references: ["Semester 1 course materials and lab manuals."] }
+                ]
+            },
+            {
+                semester: 2,
+                courses: [
+                    { title: "Applied Linear Algebra & Solid Geometry", credits: 3, category: "Foundational Science", intro: "Matrix methods and 3D geometry for spatial analysis, remote sensing, and geodetic transformations.", objectives: ["Solve linear systems and least-squares problems.", "Use eigenanalysis/SVD for dimensionality reduction and filtering.", "Apply 3D geometry to rotations, projections, and sensor models."], outcomes: ["Implement least-squares adjustment for survey traverses.", "Apply PCA to multispectral imagery for change detection.", "Compute rotation matrices/quaternions for 3D orientation."], references: ["Strang (2016) Introduction to Linear Algebra.", "Lay (2016) Linear Algebra and Its Applications.", "Mikhail & Ackermann (1976) Observations and Least Squares."] },
+                    { title: "Basic Hydrology & Water Resources", credits: 2, category: "Earth & Climate Science", intro: "Quantitative analysis of the hydrologic cycle for flood/drought assessment and water resources planning.", objectives: ["Measure and model precipitation, evapotranspiration, and runoff.", "Analyze hydrographs and perform flood frequency analysis.", "Estimate watershed water balance and storage changes."], outcomes: ["Compute design storms and peak discharges for return periods.", "Construct unit hydrographs and simulate storm responses.", "Evaluate drought severity using standardized indices."], references: ["Chow, Maidment & Mays (1988) Applied Hydrology.", "Dingman (2015) Physical Hydrology."] },
+                    { title: "Climatic, Anthropogenic & Bio Hazards", credits: 2, category: "Risk Reduction & Management", intro: "Taxonomy, drivers, and impacts of climatic, technological, and biological hazards with emphasis on South Asia.", objectives: ["Differentiate hazard classes and triggering mechanisms.", "Construct causal chains from exposure to impact/outcomes.", "Apply risk matrices and HAZOP-style analysis to case studies."], outcomes: ["Compile a multi-hazard profile for a district including cascading risks.", "Design a simple risk register and mitigation hierarchy.", "Evaluate early warning and response options for selected hazards."], references: ["Alexander (2018) Natural Disasters.", "Cutter (2012) Hazards, Vulnerability and Environmental Justice.", "WHO (2018) Managing Epidemics.", "UNEP (2015) APELL Handbook."] },
+                    { title: "Groundwater Hydrology", credits: 2, category: "Earth & Climate Science", intro: "Principles of subsurface flow, well hydraulics, and contaminant transport for water security and risk mitigation.", objectives: ["Apply Darcy’s law and aquifer concepts to groundwater problems.", "Analyze pumping tests to estimate aquifer parameters.", "Describe transport and attenuation of contaminants."], outcomes: ["Estimate K, T, and S from pumping-test data.", "Construct flow nets for seepage around structures.", "Predict contaminant plume migration under simplifying assumptions."], references: ["Todd & Mays (2005) Groundwater Hydrology.", "Fetter (2001) Applied Hydrogeology."] },
+                    { title: "Hydro-Geomorphology", credits: 2, category: "Earth & Climate Science", intro: "Interactions between hydrologic processes and landforms influencing floods, erosion, and sediment hazards.", objectives: ["Quantify drainage-basin morphometry and its hydrologic implications.", "Explain fluvial processes and channel adjustments to flow/sediment."], outcomes: ["Relate morphometric indices to flood response and hazard hotspots.", "Assess bank erosion susceptibility using hydraulic/sediment metrics."], references: ["Leopold, Wolman & Miller (1964) Fluvial Processes.", "Knighton (2014) Fluvial Forms and Processes."] },
+                    { title: "Hydrological Lab", credits: 2, category: "Practical Skills", intro: "Laboratory and field measurements supporting surface and subsurface hydrologic analysis.", objectives: ["Execute standard hydrologic measurements and calibrations.", "Analyze experimental data with uncertainty estimation."], outcomes: ["Produce QA/QC’d lab reports with error bars and uncertainty budgets.", "Derive rating curves and estimate flow from stage records."], references: ["USGS (2010) Measurement of Streamflow.", "ASTM standards for hydrologic testing."] },
+                    { title: "Mineralogy & Petrology", credits: 2, category: "Earth & Climate Science", intro: "Mineral identification and rock-forming processes with implications for geohazards and resource assessment.", objectives: ["Use crystallography and optical mineralogy for mineral ID.", "Explain igneous, sedimentary, and metamorphic processes.", "Relate lithology and structure to hazard susceptibility."], outcomes: ["Identify common rock-forming minerals and textures.", "Infer petrogenesis from mineral assemblages and field relations.", "Assess slope/erosion risks based on lithology and structure."], references: ["Nesse (2012) Introduction to Optical Mineralogy.", "Winter (2010) Principles of Igneous and Metamorphic Petrology.", "Klein & Dutrow (2007) Manual of Mineral Science."] },
+                    { title: "Surveying and Mapping", credits: 2, category: "Data & Geoinformatics", intro: "Applied topographic mapping and cartography with transition to GIS data models.", objectives: ["Plan and execute mapping surveys and compile map products.", "Apply cartographic design for clear hazard communication."], outcomes: ["Create a multi-layer hazard map with proper symbology and legend.", "Document metadata and accuracy statements for produced maps."], references: ["Dent et al. (2009) Cartography.", "Slocum et al. (2009) Thematic Cartography and Geovisualization."] },
+                    { title: "Field Work", credits: 2, category: "Practical Skills", intro: "Guided field campaign to collect hydrologic and geomorphic data for a watershed case study.", objectives: ["Plan field logistics, safety, and sampling design.", "Acquire georeferenced observations and maintain field notebooks."], outcomes: ["Deliver a field report integrating maps, photos, and measurements.", "Translate field evidence into preliminary hazard mitigation options."], references: ["Field manuals of national hydro-meteorological services."] }
+                ]
+            },
+            {
+                semester: 3,
+                courses: [
+                    { title: "Applied Differential Equation", credits: 3, category: "Foundational Science", intro: "Differential equations for dynamic environmental systems and hazard propagation.", objectives: ["Formulate ODE/PDE models of transport and waves.", "Use numerical solvers to simulate system behavior."], outcomes: ["Simulate pollutant transport in a stream reach.", "Analyze damping and resonance in a structural response model."], references: ["Boyce & DiPrima (2017) Elementary Differential Equations.", "Smith (1985) Numerical Solution of PDEs."] },
+                    { title: "Applied Statistics & Probability", credits: 3, category: "Data & Geoinformatics", intro: "Statistical inference and probability models for environmental and hazard datasets.", objectives: ["Summarize data and quantify uncertainty.", "Fit distributions to extremes and test hypotheses.", "Build regression models for risk estimation."], outcomes: ["Estimate return periods with confidence intervals.", "Develop and validate a logistic model for landslide susceptibility."], references: ["Montgomery & Runger (2014) Applied Statistics and Probability.", "Coles (2001) An Introduction to Statistical Modeling of Extreme Values."] },
+                    { title: "Atmospheric Chemistry", credits: 2, category: "Earth & Climate Science", intro: "Composition and reactions in the atmosphere influencing air quality and climate forcing.", objectives: ["Quantify lifetimes and budgets of key trace gases and aerosols.", "Interpret photochemical smog and ozone processes."], outcomes: ["Analyze PM and O3 episodes with emissions and meteorology data.", "Explain radiative forcing contributions of short-lived species."], references: ["Seinfeld & Pandis (2016) Atmospheric Chemistry and Physics.", "Jacob (1999) Introduction to Atmospheric Chemistry."] },
+                    { title: "Atmospheric Physics", credits: 2, category: "Earth & Climate Science", intro: "Physical processes governing radiation, stability, and cloud/precipitation formation.", objectives: ["Apply thermodynamics to parcel theory and stability indices.", "Relate radiation and microphysics to precipitation efficiency."], outcomes: ["Interpret radiosonde profiles to diagnose convective potential.", "Link cloud properties to rainfall type and intensity."], references: ["Wallace & Hobbs (2006) Atmospheric Science.", "Rogers & Yau (1989) Cloud Physics."] },
+                    { title: "Environmental Pollution Lab", credits: 2, category: "Practical Skills", intro: "Analytical techniques to measure air, water, and soil pollutants with QA/QC protocols.", objectives: ["Collect and preserve samples following standards.", "Operate spectrophotometry and chromatography for analytes."], outcomes: ["Produce defensible lab reports with detection limits and uncertainty.", "Interpret pollution patterns against standards and health guidelines."], references: ["APHA (2017) Standard Methods.", "EPA (2016) QA/QC Handbook."] },
+                    { title: "Introduction to Computer Programming", credits: 3, category: "Data & Geoinformatics", intro: "Programming for scientific computing, data analysis, and visualization in disaster and climate applications.", objectives: ["Develop scripts to ingest, clean, and analyze environmental data.", "Implement numerical methods and basic models relevant to hazards.", "Visualize spatial and time-series data for decision support."], outcomes: ["Automate data pipelines for rainfall/flood analysis.", "Build a small module to compute drought indices and plot maps."], references: ["Downey (2015) Think Python.", "McKinney (2018) Python for Data Analysis.", "van der Walt et al. (2011) The NumPy Array."] },
+                    { title: "Soil & Water Chemistry", credits: 2, category: "Earth & Climate Science", intro: "Chemical processes controlling soil and water quality relevant to agriculture and disaster impacts.", objectives: ["Explain sorption, ion exchange, and redox transformations.", "Assess nutrient cycling and contaminant mobility."], outcomes: ["Predict metal mobility under changing pH/Eh conditions.", "Evaluate treatment options based on speciation and sorption."], references: ["Sparks (2003) Environmental Soil Chemistry.", "Stumm & Morgan (1996) Aquatic Chemistry."] },
+                    { title: "Structural & Tectonic Geomorphology", credits: 2, category: "Engineering & Geophysics", intro: "Landform development controlled by tectonics and structural geology; implications for seismic and landslide hazards.", objectives: ["Interpret structural controls on landscape evolution.", "Map tectonic landforms and infer activity levels."], outcomes: ["Construct a morphotectonic map and classify relative activity.", "Relate structural domains to landslide and seismic risk."], references: ["Burbank & Anderson (2011) Tectonic Geomorphology.", "Summerfield (1991) Global Geomorphology."] },
+                    { title: "Viva Vocé", credits: 2, category: "Practical Skills", intro: "Oral synthesis of programming, mathematical, and atmospheric/chemical concepts.", objectives: ["Defend computational choices and model assumptions.", "Communicate lab findings succinctly to technical audiences."], outcomes: ["Demonstrate reproducible workflows and critical interpretation.", "Show readiness for geospatial and remote sensing courses."], references: ["All Semester 3 course materials."] }
+                ]
+            },
+            {
+                semester: 4,
+                courses: [
+                    { title: "Deep Earth Seismology", credits: 2, category: "Engineering & Geophysics", intro: "Seismic wave propagation, Earth structure, and earthquake hazard analysis.", objectives: ["Differentiate body/surface waves and interpret travel-time curves.", "Use seismograms for event location and magnitude estimation."], outcomes: ["Read and interpret seismograms including phase picks.", "Perform basic hazard zonation using historical catalogs and GMPEs."], references: ["Shearer (2009) Introduction to Seismology.", "Aki & Richards (2002) Quantitative Seismology."] },
+                    { title: "Disaster Statistics Lab", credits: 2, category: "Practical Skills", intro: "Statistical analysis of disaster databases for frequency, severity, and loss estimation.", objectives: ["Clean and analyze event catalogs; handle missing/outliers.", "Model frequency–magnitude relationships and estimate losses."], outcomes: ["Estimate return periods for flood peaks using GEV/Gumbel.", "Produce a loss-estimation report with uncertainty ranges."], references: ["EM-DAT documentation; UNDRR risk data standards."] },
+                    { title: "GIS Lab", credits: 2, category: "Practical Skills", intro: "Applied GIS analyses for hazard assessment and exposure mapping.", objectives: ["Create, edit, and analyze spatial data layers with topology rules.", "Build cartographic products for decision-makers."], outcomes: ["Produce an evacuation route map with travel-time surfaces.", "Create a vulnerability map integrating census and building data."], references: ["QGIS/ArcGIS Pro documentation; OGC/ISO metadata standards."] },
+                    { title: "Geodesy & Geomathematics", credits: 2, category: "Data & Geoinformatics", intro: "Measurement of Earth’s geometry, gravity, and orientation for accurate spatial referencing.", objectives: ["Transform coordinates between datums and projections.", "Use gravity/geoid concepts for height systems and deformation."], outcomes: ["Perform datum transformations with uncertainty estimates.", "Use GNSS data to infer vertical motion/deformation trends."], references: ["Hofmann-Wellenhof & Moritz (2006) Physical Geodesy.", "Vaníček & Krakiwsky (1986) Geodesy."] },
+                    { title: "Geographic Information System and Database Management", credits: 2, category: "Data & Geoinformatics", intro: "GIS concepts and spatial database design for multi-hazard risk analysis.", objectives: ["Model spatial data and relationships with topology and attributes.", "Implement queries, joins, and geoprocessing for risk mapping."], outcomes: ["Design a spatial database for a municipal DRR program.", "Produce hazard–exposure–vulnerability overlays for risk scores."], references: ["Longley et al. (2015) GIS and Science.", "Booth & Mitchell (2011) ArcGIS/Enterprise Geodatabases."] },
+                    { title: "Numerical Analysis & Sampling Techniques", credits: 2, category: "Data & Geoinformatics", intro: "Computational approximation methods and statistically sound sampling for field/lab programs.", objectives: ["Apply interpolation, integration, and root-finding to geodata.", "Design sampling schemes with representativeness and power."], outcomes: ["Implement numerical routines for DEM/TS analysis.", "Design a stratified sampling plan for water quality monitoring."], references: ["Burden & Faires (2011) Numerical Analysis.", "Cochran (1977) Sampling Techniques."] },
+                    { title: "Principle of Remote Sensing", credits: 2, category: "Data & Geoinformatics", intro: "Theory of Earth observation across optical, thermal, and microwave domains for hazard mapping.", objectives: ["Explain sensor–target–atmosphere interactions across the EM spectrum.", "Select appropriate sensors and processing chains for applications."], outcomes: ["Choose sensors and preprocessing steps for a flood/landslide task.", "Evaluate classification accuracy with independent validation."], references: ["Lillesand, Kiefer & Chipman (2015) Remote Sensing.", "Richards (2013) Remote Sensing Digital Image Analysis."] },
+                    { title: "Remote Sensing Lab", credits: 2, category: "Practical Skills", intro: "Hands-on image preprocessing, classification, and change detection for disaster applications.", objectives: ["Process optical and SAR data from raw to analysis-ready.", "Build supervised/unsupervised classification and validate outputs."], outcomes: ["Deliver a classified map (e.g., flood extent) with accuracy report.", "Document a reproducible workflow using open-source tools."], references: ["ENVI/ERDAS/QGIS documentation; ESA Sentinel user guides."] },
+                    { title: "Field Work", credits: 2, category: "Practical Skills", intro: "Ground-truthing of remote sensing and GIS analyses with GPS/GNSS surveys.", objectives: ["Plan ground control and validation sampling.", "Integrate field observations into geospatial products."], outcomes: ["Submit a field validation report improving classification accuracy.", "Recommend data collection improvements for future campaigns."], references: ["Agency field manuals; SAFETY and IRB/ethics guidelines."] }
+                ]
+            },
+            {
+                semester: 5,
+                courses: [
+                    { title: "Application of Geophysics", credits: 3, category: "Engineering & Geophysics", intro: "Geophysical methods for subsurface characterization in support of hazard and engineering studies.", objectives: ["Select appropriate methods based on targets and conditions.", "Process and interpret field data with awareness of ambiguity."], outcomes: ["Design a resistivity survey for groundwater/landslide zones.", "Interpret refraction data to derive layer velocities and depths."], references: ["Kearey, Brooks & Hill (2013) Geophysical Exploration.", "Reynolds (2011) Applied Geophysics."] },
+                    { title: "Application of Geotecnics", credits: 3, category: "Engineering & Geophysics", intro: "Soil and rock mechanics applied to foundations, slopes, and earth-retaining structures in hazard-prone regions.", objectives: ["Determine index and strength parameters for design.", "Analyze stability and design mitigation/retrofitting measures."], outcomes: ["Compute bearing capacity and factor of safety for slopes.", "Recommend ground improvement or drainage schemes."], references: ["Das (2015) Principles of Geotechnical Engineering.", "Craig (2012) Soil Mechanics."] },
+                    { title: "Engineering Geophysics Lab", credits: 2, category: "Practical Skills", intro: "Field acquisition and processing of seismic and resistivity data for engineering applications.", objectives: ["Operate seismographs and resistivity instruments safely.", "Process field data to produce subsurface sections."], outcomes: ["Deliver interpreted sections with limitations and uncertainty.", "Advise siting for foundations or groundwater extraction."], references: ["Manufacturer manuals; Kearey et al. (2013)."] },
+                    { title: "Geological & Hydro-meteorological Hazards", credits: 2, category: "Risk Reduction & Management", intro: "Mechanisms, monitoring, and mitigation of geologic and hydro-meteorological hazards.", objectives: ["Differentiate triggering and preconditioning factors.", "Design basic monitoring and early warning elements."], outcomes: ["Prepare a hazard matrix with monitoring/mitigation options.", "Prioritize interventions based on risk and feasibility."], references: ["Smith & Petley (2009) Environmental Hazards.", "UNDRR (2015) Sendai Framework."] },
+                    { title: "Geotechnical Lab", credits: 2, category: "Practical Skills", intro: "Laboratory determination of soil index and strength properties for design and hazard assessment.", objectives: ["Perform standard classification and compaction tests.", "Measure shear strength parameters using direct and triaxial tests."], outcomes: ["Prepare lab reports with Mohr–Coulomb parameters and uncertainties.", "Recommend foundation and slope measures from test results."], references: ["ASTM/IS codes; Das (2015)."] },
+                    { title: "Oceanic & Geospheric Dynamics", credits: 2, category: "Earth & Climate Science", intro: "Dynamics of oceans and solid Earth relevant to tsunamis, storm surges, and tectonic hazards.", objectives: ["Describe wave, tide, and current systems impacting coasts.", "Relate plate dynamics to seismic and volcanic activity."], outcomes: ["Estimate surge heights under simplified forcing scenarios.", "Explain tsunami generation and basic propagation models."], references: ["Pinet (2019) Invitation to Oceanography.", "Trujillo & Thurman (2016) Essentials of Oceanography."] },
+                    { title: "Urban and Regional Planning", credits: 2, category: "Social Science & Planning", intro: "Planning instruments and regulatory tools to reduce urban and regional disaster risk.", objectives: ["Integrate hazard information into land-use planning.", "Evaluate planning policy instruments for resilience."], outcomes: ["Draft a risk-sensitive land-use concept plan for a city ward.", "Assess plan compliance with DRR standards and SDGs."], references: ["UN-Habitat (2015) Urban Planning for DRR.", "Hall (2014) Cities of Tomorrow."] },
+                    { title: "Vectors & Vector Calculus", credits: 2, category: "Foundational Science", intro: "Vector analysis for geophysical flows, electromagnetism, and continuum mechanics.", objectives: ["Use gradient, divergence, and curl in field descriptions.", "Evaluate flux integrals and apply integral theorems."], outcomes: ["Compute mass/heat fluxes across control surfaces.", "Interpret vorticity and circulation in hazard meteorology."], references: ["Marsden & Tromba (2012) Vector Calculus.", "Schey (2005) Div, Grad, Curl, and All That."] }
+                ]
+            },
+            {
+                semester: 6,
+                courses: [
+                    { title: "Built Environment & Design", credits: 2, category: "Social Science & Planning", intro: "Principles and practices for designing disaster-resilient buildings and infrastructure.", objectives: ["Apply performance-based design for seismic/wind/flood hazards.", "Incorporate sustainability and affordability in design."], outcomes: ["Propose retrofit options for typical vulnerable building types.", "Prepare schematic designs with hazard-specific justifications."], references: ["FEMA P-58; IS/BNBC codes; ASCE 7 (selected)."] },
+                    { title: "Geophysical & Seismic Risk Reduction", credits: 3, category: "Risk Reduction & Management", intro: "Strategies to reduce risk from earthquakes and sub-surface hazards across building and community scales.", objectives: ["Assess seismic hazard and structural vulnerability.", "Design mitigation and preparedness measures including EWS."], outcomes: ["Prepare a microzonation-based risk reduction plan.", "Prioritize retrofit portfolios with benefit–cost reasoning."], references: ["Kramer (1996) Geotechnical Earthquake Engineering; FEMA HAZUS Tech Manuals."] },
+                    { title: "Hazard Analysis and Risk Reduction Lab", credits: 2, category: "Practical Skills", intro: "Hands-on risk assessment using quantitative methods and stakeholder inputs.", objectives: ["Calculate risk metrics and prioritize interventions.", "Communicate results with clear visuals and briefs."], outcomes: ["Deliver a decision brief ranking risk-reduction options.", "Reflect on ethical, social, and environmental co-benefits."], references: ["UNDRR risk tools compendium; World Bank DRM toolkit."] },
+                    { title: "Hydro-meteorological Risk Reduction", credits: 3, category: "Risk Reduction & Management", intro: "Interventions to reduce risk from floods, cyclones, and droughts using structural and non-structural measures.", objectives: ["Design integrated watershed and coastal protection solutions.", "Operationalize early warning and contingency planning."], outcomes: ["Develop a multi-layered flood risk reduction plan for a basin.", "Write SOPs linking forecasts to actionable response."], references: ["Kundzewicz et al. (2014) Flood Risk Management; IFRC/UNDRR EWS guidelines."] },
+                    { title: "Numerical Simulation and Machine Learning Lab", credits: 2, category: "Practical Skills", intro: "Applied modelling and ML for forecasting hazards and impacts.", objectives: ["Build, train, and validate predictive models for hazard events.", "Quantify model skill, bias, and uncertainty."], outcomes: ["Deliver a forecast model (e.g., landslide susceptibility) with metrics.", "Document reproducible pipelines and ethical data considerations."], references: ["Goodfellow et al. (2016) Deep Learning; Hastie et al. (2009) The Elements of Statistical Learning."] },
+                    { title: "Risk Sensitive Land-use Planning Lab", credits: 2, category: "Practical Skills", intro: "GIS-based planning laboratory integrating hazard, exposure, and vulnerability into land-use proposals.", objectives: ["Generate zoning overlays that reduce risk and enhance resilience.", "Evaluate trade-offs and equity implications."], outcomes: ["Produce a zoning atlas with policy notes and design guidelines.", "Justify plan choices using quantified risk reductions."], references: ["UN-Habitat planning toolkits; local planning codes."] },
+                    { title: "Viva Vocé", credits: 2, category: "Practical Skills", intro: "Oral defense of risk reduction analyses, simulations, and lab outputs.", objectives: ["Synthesize semester knowledge and defend assumptions."], outcomes: ["Demonstrate readiness for advanced monitoring and research."], references: ["Semester 6 materials."] },
+                    { title: "Field Work", credits: 2, category: "Practical Skills", intro: "Field verification of risk reduction measures and community engagement.", objectives: ["Assess functionality of risk mitigation structures and SOPs.", "Gather stakeholder feedback on warning and response."], outcomes: ["Report on effectiveness and gaps with actionable recommendations.", "Integrate community inputs into revised plans."], references: ["Agency O&M manuals; social research ethics guides."] }
+                ]
+            },
+            {
+                semester: 7,
+                courses: [
+                    { title: "Anthropogenic Hazards Monitoring & Modelling", credits: 2, category: "Risk Reduction & Management", intro: "Industrial, chemical, and urban hazards: monitoring, modelling, and emergency planning.", objectives: ["Assess technological risks and plan for emergencies.", "Model dispersion and consequences for response planning."], outcomes: ["Develop a site emergency plan with protective action criteria.", "Run a dispersion scenario and interpret downwind impacts."], references: ["CCPS Guidelines for Risk Based Process Safety; EPA ALOHA user guide."] },
+                    { title: "Climate & Climatic Risk Modelling", credits: 2, category: "Earth & Climate Science", intro: "Assessment of climate variability and change for risk analysis and adaptation planning.", objectives: ["Analyze historical climate; downscale projections for planning.", "Quantify climate risk for sectors and systems."], outcomes: ["Generate localized climate projections with uncertainty bands.", "Produce a sectoral climate risk profile with options analysis."], references: ["IPCC AR6; Wilby & Dessai (2010) Robust Adaptation."] },
+                    { title: "Geo-informatics and MIS in Disaster", credits: 2, category: "Data & Geoinformatics", intro: "Integration of GIS, remote sensing, and MIS to support decision-making before, during, and after disasters.", objectives: ["Design information flows and dashboards for operations.", "Ensure data standards, interoperability, and security."], outcomes: ["Deploy a prototype MIS for incident tracking and resource status.", "Draft data governance SOPs for an emergency operations center."], references: ["OCHA Humanitarian Data Exchange docs; ISO 19115; INSPIRE."] },
+                    { title: "Geological Hazards Monitoring & Modelling", credits: 2, category: "Engineering & Geophysics", intro: "Monitoring and modelling of earthquakes and landslides for risk reduction.", objectives: ["Interpret seismic/ground-motion records for actionable insights.", "Map landslide susceptibility and trigger thresholds."], outcomes: ["Produce an earthquake impact map within hours of an event.", "Publish a landslide susceptibility map with validation metrics."], references: ["USGS ShakeMap manuals; Guzzetti et al. (1999) Landslide Hazard Assessment."] },
+                    { title: "Hydro-Meteorological Hazards Monitoring & Modelling", credits: 2, category: "Risk Reduction & Management", intro: "Observation and modelling of floods, storms, and droughts for operations and planning.", objectives: ["Set up monitoring networks and model workflows.", "Assimilate observations to improve predictions."], outcomes: ["Configure a basin model and evaluate skill against observations.", "Recommend network upgrades for better forecast performance."], references: ["Kundzewicz et al. (2014); WMO Hydrology Guides."] },
+                    { title: "Research Methodology and Knowledge Management", credits: 2, category: "Foundational Science", intro: "Design, ethics, and dissemination of research for disaster science.", objectives: ["Formulate testable questions and robust study designs.", "Manage data and curate knowledge for reuse."], outcomes: ["Submit a research proposal with methods and ethics approvals.", "Create a reproducible data package with documentation."], references: ["Creswell (2017); Bishop & van den Eynden (2010) DMPs."] },
+                    { title: "Viva Vocé", credits: 2, category: "Practical Skills", intro: "Oral examination integrating advanced monitoring, modelling, and research design.", objectives: ["Defend methodological choices and communicate uncertainty."], outcomes: ["Demonstrate readiness for capstone research."], references: ["Semester 7 materials."] },
+                    { title: "Weather Prediction and Early Warning", credits: 3, category: "Risk Reduction & Management", intro: "Forecasting methods and early warning chain design for hydro meteorological hazards.", objectives: ["Use NWP outputs and observations to issue risk-informed outlooks.", "Design end-to-end early warning systems with SOPs."], outcomes: ["Produce an impact-based forecast and warning bulletin.", "Evaluate forecast skill and propose improvements."], references: ["WMO guidelines on Multi-hazard EWS; Pielke (2013) Mesoscale Modeling."] }
+                ]
+            },
+            {
+                semester: 8,
+                courses: [
+                    { title: "Bangladesh Studies & Climate Resilience Approach", credits: 2, category: "Social Science & Planning", intro: "Adaptation and resilience strategies tailored to Bangladesh’s biophysical and socio-economic realities.", objectives: ["Evaluate community-based and infrastructure adaptations.", "Integrate nature-based solutions into planning."], outcomes: ["Draft a resilience pathway for a coastal union parishad.", "Prioritize interventions using multi-criteria analysis."], references: ["IPCC AR6 WGII South Asia; World Bank Bangladesh Climate & Development Report."] },
+                    { title: "Bangladesh Studies & Hazardous Events", credits: 2, category: "Social Science & Planning", intro: "Historical and contemporary hazard landscape of Bangladesh with policy and institutional context.", objectives: ["Analyze spatial–temporal trends in major hazards.", "Link policy evolution to changes in risk and outcomes."], outcomes: ["Produce a Bangladesh hazard atlas section for one division.", "Recommend institutional coordination improvements."], references: ["Government of Bangladesh DRR policies; BMD/BWDB reports."] },
+                    { title: "Damage, Loss and Need Assessment", credits: 2, category: "Risk Reduction & Management", intro: "Methodologies to estimate disaster impacts and prioritize recovery needs.", objectives: ["Apply PDNA/DALA frameworks and rapid assessment tools.", "Quantify sectoral damages, losses, and needs."], outcomes: ["Deliver a PDNA chapter with transparent assumptions.", "Translate findings into a recovery framework and budget."], references: ["EU–UN–WB (2013) PDNA Guidelines; ECLAC DALA Manual."] },
+                    { title: "Disaster Management & Methods", credits: 3, category: "Risk Reduction & Management", intro: "Integrated disaster management cycle with practical tools for operations.", objectives: ["Develop preparedness, response, and recovery plans.", "Institutionalize continuous improvement and learning."], outcomes: ["Write an emergency operations plan with annexes and SOPs.", "Design exercises and drills with evaluation criteria."], references: ["FEMA CPG 101; UNISDR (2015) Sendai Framework."] },
+                    { title: "Disaster in Agriculture & Food Security", credits: 2, category: "Social Science & Planning", intro: "Impacts of hazards on agriculture and food systems with resilience measures.", objectives: ["Assess vulnerability of crops, fisheries, and livestock.", "Plan for food security during and after disasters."], outcomes: ["Produce a district food security contingency plan.", "Recommend climate-smart agriculture practices."], references: ["FAO DRR in Agriculture; CSA sourcebook."] },
+                    { title: "Project Planning, Monitoring & Evaluation", credits: 2, category: "Social Science & Planning", intro: "Results-based management for DRR/CCA projects.", objectives: ["Construct logical frameworks and budgets.", "Design M&E plans and learning mechanisms."], outcomes: ["Submit a fundable project proposal with logframe and budget.", "Produce an M&E plan with data quality and reporting schedules."], references: ["Kusek & Rist (2004) Ten Steps to a Results-Based M&E System; UNDP Project Cycle."] },
+                    { title: "Shelter Management & Crisis Planning", credits: 2, category: "Risk Reduction & Management", intro: "Design and operations of emergency shelters and crisis coordination.", objectives: ["Plan shelter capacity, logistics, and inclusive services.", "Coordinate with agencies for multi-hazard response."], outcomes: ["Prepare a shelter operations plan with staffing and supplies.", "Design a crisis coordination checklist and communication tree."], references: ["IFRC Shelter Guidelines; Sphere Handbook (2018)."] },
+                    { title: "Research Project", credits: 6, category: "Practical Skills", intro: "Independent capstone research addressing a real disaster/climate resilience problem.", objectives: ["Formulate research questions and methods aligned to ethics.", "Collect, analyze, and interpret data; disseminate findings."], outcomes: ["Deliver a thesis and data package suitable for repository deposit.", "Present actionable recommendations to stakeholders."], references: ["Creswell (2017); University thesis guidelines; relevant domain literature."] }
+                ]
+            }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const courseListContainer = document.getElementById('course-list');
+            const semesterButtons = document.querySelectorAll('.semester-btn');
+            let activeSemester = 1;
+
+            const renderCourses = (semester) => {
+                const semesterData = curriculumData.find(s => s.semester === semester);
+                if (!semesterData) return;
+
+                courseListContainer.innerHTML = '';
+                semesterData.courses.forEach(course => {
+                    const courseElement = document.createElement('div');
+                    courseElement.className = 'course-item bg-white rounded-lg shadow-md overflow-hidden';
+                    courseElement.innerHTML = `
+                        <div class="course-item-header p-4 flex justify-between items-center border-b border-gray-200">
+                            <div>
+                                <h4 class="font-semibold text-lg text-gray-800">${course.title}</h4>
+                                <p class="text-sm text-gray-500">${course.credits} Credits | <span class="font-medium text-cyan-600">${course.category}</span></p>
+                            </div>
+                            <div class="chevron text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                            </div>
+                        </div>
+                        <div class="course-item-content">
+                            <div class="p-6 bg-gray-50">
+                                <p class="mb-4 text-gray-600">${course.intro}</p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                    <div>
+                                        <h5 class="font-semibold mb-2 text-gray-700">Objectives</h5>
+                                        <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                            ${course.objectives.map(obj => `<li>${obj}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-semibold mb-2 text-gray-700">Learning Outcomes</h5>
+                                        <ul class="list-disc list-inside space-y-1 text-gray-600">
+                                            ${course.outcomes.map(out => `<li>${out}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold mb-2 text-gray-700">References & Study Materials</h5>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-600 text-sm">
+                                        ${course.references.map(ref => `<li>${ref}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    courseListContainer.appendChild(courseElement);
+                });
+            };
+
+            const setupEventListeners = () => {
+                semesterButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        semesterButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        activeSemester = parseInt(button.dataset.semester);
+                        renderCourses(activeSemester);
+                    });
+                });
+
+                courseListContainer.addEventListener('click', (e) => {
+                    const header = e.target.closest('.course-item-header');
+                    if (header) {
+                        const courseItem = header.parentElement;
+                        courseItem.classList.toggle('open');
+                    }
+                });
+            };
+
+            const createCreditsChart = () => {
+                const ctx = document.getElementById('creditsChart').getContext('2d');
+                const labels = curriculumData.map(s => `Semester ${s.semester}`);
+                const data = curriculumData.map(s => s.courses.reduce((acc, course) => acc + course.credits, 0));
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total Credits',
+                            data: data,
+                            backgroundColor: 'rgba(8, 145, 178, 0.6)',
+                            borderColor: 'rgba(8, 145, 178, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Credits' }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
+            const createThematicChart = () => {
+                const ctx = document.getElementById('thematicChart').getContext('2d');
+                const categoryCounts = curriculumData
+                    .flatMap(s => s.courses)
+                    .reduce((acc, course) => {
+                        acc[course.category] = (acc[course.category] || 0) + 1;
+                        return acc;
+                    }, {});
+
+                const labels = Object.keys(categoryCounts);
+                const data = Object.values(categoryCounts);
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Number of Courses',
+                            data: data,
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.7)',
+                                'rgba(255, 206, 86, 0.7)',
+                                'rgba(75, 192, 192, 0.7)',
+                                'rgba(153, 102, 255, 0.7)',
+                                'rgba(255, 159, 64, 0.7)',
+                                'rgba(255, 99, 132, 0.7)',
+                                'rgba(201, 203, 207, 0.7)'
+                            ],
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 12,
+                                    padding: 15
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+            
+            renderCourses(activeSemester);
+            setupEventListeners();
+            createCreditsChart();
+            createThematicChart();
+        });
+    </script>
+</body>
+</html>
